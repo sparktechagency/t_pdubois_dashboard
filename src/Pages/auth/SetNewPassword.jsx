@@ -1,14 +1,32 @@
 import { Form, Input, Button } from "antd";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useResetPasswordMutation } from "../../Redux/authApis";
 const SetNewPassword = () => {
   const navigate = useNavigate();
-  const onFinish = (values) => {
-    console.log(values);
-    toast.success("Your password has been updated.");
-    navigate("/login");
-  };
 
+  const [postResetPassword, { isLoading }] = useResetPasswordMutation();
+  const [form] = Form.useForm();
+
+  const onFinish = async (values) => {
+    try {
+      await postResetPassword({
+        email: localStorage.getItem("email"),
+        password: values.password,
+        confirmPassword: values.confirmPassword,
+      })
+        .unwrap()
+        .then((res) => {
+          toast.success(res?.message);
+          form.resetFields();
+          localStorage.clear();
+          localStorage.setItem("token", res?.data?.accessToken);
+          navigate("/");
+        });
+    } catch (error) {
+      toast.error(error?.data?.message);
+    }
+  };
   return (
     <div className="h-screen flex items-center justify-center bg-[#F9FAFB] font-poppins ">
       <div className="!max-w-[500px] !w-full">
@@ -74,7 +92,7 @@ const SetNewPassword = () => {
                 htmlType="submit"
                 className="w-full bg-[#6C63FF] hover:!bg-[#5a52f1] text-white font-bold  h-[48px] rounded-md font-poppins"
               >
-                Confirm
+                {isLoading ? "Loading..." : "Confirm"}
               </Button>
             </Form.Item>
           </Form>

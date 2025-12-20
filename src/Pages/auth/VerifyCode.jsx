@@ -2,9 +2,14 @@ import { Form, Button } from "antd";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import {
+  useForgetPasswordOTPMutation,
+  useVerifyEmailOtpMutation,
+} from "../../Redux/authApis";
 
 const VerifyCode = () => {
   const navigate = useNavigate();
+  const [form] = Form.useForm(); // Add this
   const [otp, setOtp] = useState(Array(6).fill(""));
   const inputRefs = useRef([]);
 
@@ -17,6 +22,9 @@ const VerifyCode = () => {
     newOtp[index] = value[0];
     setOtp(newOtp);
 
+    // Update form field value
+    form.setFieldsValue({ otp: newOtp.join("") });
+
     if (index < 5 && inputRefs.current[index + 1]) {
       inputRefs.current[index + 1].focus();
     }
@@ -28,16 +36,19 @@ const VerifyCode = () => {
       if (otp[index]) {
         newOtp[index] = "";
         setOtp(newOtp);
+        form.setFieldsValue({ otp: newOtp.join("") }); 
       } else if (index > 0) {
         inputRefs.current[index - 1]?.focus();
-        const newOtp = [...otp];
         newOtp[index - 1] = "";
         setOtp(newOtp);
+        form.setFieldsValue({ otp: newOtp.join("") }); 
       }
     }
   };
 
   const handlePaste = (e) => {
+    e.preventDefault();
+
     const paste = e.clipboardData.getData("text").replace(/\D/g, "");
     if (!paste) return;
 
@@ -46,29 +57,53 @@ const VerifyCode = () => {
 
     pasteArray.forEach((char, i) => {
       newOtp[i] = char;
-      if (inputRefs.current[i]) {
-        inputRefs.current[i].value = char;
-      }
     });
 
     setOtp(newOtp);
 
-    const nextIndex = pasteArray.length < 6 ? pasteArray.length : 5;
-    inputRefs.current[nextIndex]?.focus();
+    form.setFieldsValue({ otp: newOtp.join("") });
+
+    const nextIndex = Math.min(pasteArray.length, 5);
+    setTimeout(() => {
+      inputRefs.current[nextIndex]?.focus();
+    }, 0);
   };
 
-  const onFinishOtp = () => {
-    const enteredOtp = otp.join("");
-    if (enteredOtp.length < 6) {
-      toast.error("Please enter full OTP");
-      return;
+  const [postVerifyAccount, { isLoading: isVerifyLoading }] =
+    useVerifyEmailOtpMutation();
+  const [postResendOtp, { isLoading: isResendLoading }] =
+    useForgetPasswordOTPMutation();
+
+  const onFinishOtp = async () => {
+    const email = localStorage.getItem("email") || "";
+    if (!email) {
+      navigate("/forget-password");
     }
-    console.log("Entered OTP:", enteredOtp);
-    navigate("/reset-password");
+    try {
+      await postVerifyAccount({
+        email: email,
+        resetCode: parseInt(otp.join(""), 10),
+      })
+        .unwrap()
+        .then((res) => {
+          toast.success(res?.message);
+          navigate("/reset-password");
+        });
+    } catch (error) {
+      toast.error(error?.data?.message);
+    }
   };
 
-  const handleResendOtp = () => {
-    toast.success("OTP sent successfully!");
+  const handleResendOtp = async () => {
+    try {
+      const result = await postResendOtp({
+        email: localStorage.getItem("email"),
+      });
+      toast.success(result?.data?.message);
+    } catch (error) {
+      console.log(error);
+      toast.error(error?.data?.message);
+    }
   };
 
   return (
@@ -80,6 +115,7 @@ const VerifyCode = () => {
           mentioned in the email
         </div>
         <Form
+          form={form} // Add this
           layout="vertical"
           onFinish={onFinishOtp}
           className="w-full max-w-sm"
@@ -97,6 +133,7 @@ const VerifyCode = () => {
                   value={digit}
                   onChange={(e) => handleChange(index, e)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
+                  onPaste={handlePaste}
                   maxLength={1}
                   className="w-12 h-12 border border-gray-300 rounded-lg text-center text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 "
                 />
@@ -110,7 +147,7 @@ const VerifyCode = () => {
               htmlType="submit"
               className="w-full bg-[#6C63FF] hover:!bg-[#635cf5] text-white  h-[48px] rounded-md font-poppins"
             >
-              Verify
+              {isVerifyLoading ? "Verifying..." : "Verify"}
             </Button>
           </Form.Item>
         </Form>
@@ -121,7 +158,7 @@ const VerifyCode = () => {
             className="text-[#6C63FF] hover:text-blue-500 cursor-pointer"
             onClick={handleResendOtp}
           >
-            Resend
+            {isResendLoading ? "Resending..." : "Resend"}
           </div>
         </div>
       </div>

@@ -2,13 +2,32 @@ import { Form, Input, Button, Checkbox } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import craveCrusherlogo from "../../../public/crave-crusher-logo.svg";
+import { useSignInMutation } from "../../Redux/authApis";
 
 const Login = () => {
   const navigate = useNavigate();
-  const onFinish = (values) => {
+
+  const [form] = Form.useForm();
+
+  const [postSignIn, { isLoading }] = useSignInMutation();
+
+  const onFinish = async (values) => {
     console.log(values);
-    toast.success("Login successfully!");
-    navigate("/");
+    try {
+      await postSignIn({
+        email: values.email,
+        password: values.password,
+      })
+        .unwrap()
+        .then((res) => {
+          toast.success(res?.message);
+          form.resetFields();
+          localStorage.setItem("token", res?.data?.accessToken);
+          navigate("/");
+        });
+    } catch (error) {
+      toast.error(error?.data?.message);
+    }
   };
 
   return (
@@ -87,7 +106,7 @@ const Login = () => {
               htmlType="submit"
               className="w-full bg-[#6C63FF] text-white h-[48px] hover:!bg-[#5a52f1] rounded-md font-poppins "
             >
-              Sign In
+              {isLoading ? "Loading..." : "Sign In"}
             </Button>
           </Form.Item>
         </Form>

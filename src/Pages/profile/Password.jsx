@@ -1,29 +1,40 @@
-import { Form, Input, Button, message } from "antd";
+import { Form, Input, Button } from "antd";
 import { EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
+import { useChangePasswordMutation } from "../../Redux/authApis";
+import toast from "react-hot-toast";
 
 const Password = () => {
   const [form] = Form.useForm();
 
+  const [changePassword, { isLoading }] = useChangePasswordMutation();
   const handleCancelClick = () => {
     form.resetFields();
   };
 
-  const handleSaveClick = () => {
-    form
-      .validateFields()
-      .then((values) => {
-        console.log("Password Updated:", values);
-        message.success("Password updated successfully!");
-      })
-      .catch(() => {
-        console.error("Validation Failed");
-      });
+  const handleSaveClick = async (values) => {
+    console.log(values);
+    try {
+      const response = await changePassword({
+        oldPassword: values.currentPassword,
+        newPassword: values.newPassword,
+        confirmNewPassword: values.confirmPassword,
+      }).unwrap();
+      toast.success(response.message);
+      form.resetFields();
+    } catch (error) {
+      toast.error(error.data?.error || "Failed to update password.");
+    }
   };
 
   return (
     <div className="flex flex-col items-center">
       <div className="rounded-lg  w-full ">
-        <Form form={form} layout="vertical" requiredMark={false}>
+        <Form
+          form={form}
+          layout="vertical"
+          requiredMark={false}
+          onFinish={handleSaveClick}
+        >
           <Form.Item
             label={<div className=" font-poppins">Current Password</div>}
             name="currentPassword"
@@ -84,10 +95,10 @@ const Password = () => {
           <div className="flex items-center justify-center gap-1.5">
             <Button
               type="primary"
-              onClick={handleSaveClick}
+              htmlType="submit"
               className="!px-10 !py-3 font-poppins w-full bg-[#6C63FF] hover:!bg-[#635bfa]"
             >
-              Save
+              {isLoading ? "Saving..." : "Save"}
             </Button>
             <Button
               onClick={handleCancelClick}

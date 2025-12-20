@@ -1,72 +1,84 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Password from "./Password";
-import { Button, Form, Image, Input, message, Upload } from "antd";
+import { Button, Form, Image, Input, Upload } from "antd";
 import { UploadOutlined, LoadingOutlined } from "@ant-design/icons";
 import profileImage from "../../assets/profile.png";
 import Back from "../../components/back/Back";
+import toast from "react-hot-toast";
+import {
+  useGetProfileQuery,
+  useUpdateProfileMutation,
+} from "../../Redux/profileApis";
+import { image_url } from "../../Redux/main/server";
 const Profile = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [form] = Form.useForm();
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: "Thuto Makohaone",
-    email: "thutomakohaone@gmail.com",
-    phone: "+27 55745 2567 125",
-    area: "",
-    building: "",
-    postalCode: "2191",
-    streetAddress: "Alice Street",
-    pdf: null,
-    image: null,
-  });
+  const [formData, setFormData] = useState({});
+  const { data: profileData, isLoading } = useGetProfileQuery();
+  const [updateProfile] = useUpdateProfileMutation();
 
-  const handleUpdate = () => {
-    if (isEditing) {
-      form
-        .validateFields()
-        .then((values) => {
-          setFormData({ ...formData, ...values });
-          message.success("Profile updated successfully!");
-          setIsEditing(false);
-        })
-        .catch(() => {
-          message.error("Please complete the form properly.");
-        });
-    } else {
-      setIsEditing(true);
+  console.log(profileData);
+
+  useEffect(() => {
+    if (profileData?.data) {
+      form.setFieldsValue({
+        fullName: profileData.data?.fullName,
+        email: profileData.data?.email,
+      });
+
+      setFormData({
+        image: `${image_url}/${profileData.data?.profileImage}`,
+      });
     }
-  };
+  }, [profileData, form]);
 
-  const handleImageUpload = async (info) => {
-    setImageLoading(true);
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
-    const uploadedImage = info.file.originFileObj || info.file;
-
-    if (!(uploadedImage instanceof File)) {
-      message.error("Invalid file type. Please upload a valid image.");
-      setImageLoading(false);
+  const handleUpdate = async () => {
+    if (!isEditing) {
+      setIsEditing(true);
       return;
     }
 
-    setTimeout(() => {
-      setImageLoading(false);
+    try {
+      const values = await form.validateFields();
 
-      try {
-        const imageURL = URL.createObjectURL(uploadedImage);
+      const fd = new FormData();
+      fd.append("fullName", values.fullName);
 
-        setFormData({
-          ...formData,
-          image: imageURL,
-        });
-
-        message.success("Profile image updated successfully!");
-      } catch (error) {
-        console.error("Error creating image URL:", error);
-        message.error("Error displaying image.");
+      if (formData.imageFile) {
+        fd.append("profileImage", formData.imageFile);
       }
-    }, 2000);
+
+      const response = await updateProfile(fd).unwrap();
+      toast.success(response?.message || "Profile updated successfully!");
+      setIsEditing(false);
+    } catch (error) {
+      toast.error(error?.data?.message || "Update failed");
+      console.error(error);
+    }
+  };
+
+  const handleImageUpload = (info) => {
+    console.log(info.file);
+    const file = info.file;
+
+    if (!(file instanceof File)) {
+      toast.error("Invalid image file");
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      imageFile: file,
+      imagePreview: URL.createObjectURL(file),
+    }));
+
+    toast.success("Image selected");
   };
   return (
     <div className="bg-[#F9FAFB] px-10 py-10">
@@ -75,7 +87,11 @@ const Profile = () => {
         <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-xl">
           <div className="flex flex-col items-center">
             <Image
-              src={formData.image ? formData.image : profileImage}
+              src={
+                formData.imagePreview ||
+                `${image_url}/${profileData.data?.profileImage}` ||
+                profileImage
+              }
               alt="Profile"
               className="w-24 h-24 rounded-full border object-cover"
               width={100}
@@ -101,7 +117,7 @@ const Profile = () => {
             )}
 
             <h2 className="mt-3 text-xl font-semibold font-poppins">
-              Jerome Smith
+              {profileData?.data?.fullName}
             </h2>
           </div>
 
@@ -158,7 +174,6 @@ const Profile = () => {
                     <Button
                       type="primary"
                       onClick={handleUpdate}
-                      disabled={loading}
                       className="!px-10 !py-3 !font-poppins w-full bg-[#6C63FF] hover:!bg-[#615af8] h-[42px]"
                     >
                       {isEditing ? "Save" : "Update Now"}

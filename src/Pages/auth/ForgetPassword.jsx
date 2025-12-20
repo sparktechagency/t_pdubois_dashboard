@@ -1,10 +1,36 @@
 import { Button, Form, Input } from "antd";
 import { useNavigate } from "react-router-dom";
+import { useForgetPasswordOTPMutation } from "../../Redux/authApis";
+import toast from "react-hot-toast";
 const ForgetPassword = () => {
+  // const navigate = useNavigate();
+  // const onFinish = (values) => {
+  //   console.log(values);
+  //   navigate("/verify-code");
+  // };
+
   const navigate = useNavigate();
-  const onFinish = (values) => {
-    console.log(values);
-    navigate("/verify-code");
+
+  const [postForgotPassword, { isLoading }] = useForgetPasswordOTPMutation();
+
+  const [form] = Form.useForm();
+
+  const onFinish = async (values) => {
+    try {
+      await postForgotPassword({
+        email: values.email,
+      })
+        .unwrap()
+        .then((res) => {
+          toast.success(res?.message);
+          form.resetFields();
+          localStorage.removeItem("email");
+          localStorage.setItem("email", values.email);
+          navigate("/verify-code");
+        });
+    } catch (error) {
+      toast.error(error?.data?.message);
+    }
   };
 
   return (
@@ -52,7 +78,7 @@ const ForgetPassword = () => {
               htmlType="submit"
               className="w-full bg-[#6C63FF] hover:!bg-[#645cfc] mt-5 text-white font-bold font-poppins h-[48px] rounded-md"
             >
-              Continue
+              {isLoading ? "Loading..." : "Continue"}
             </Button>
           </Form.Item>
         </Form>

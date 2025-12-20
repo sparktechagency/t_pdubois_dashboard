@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { MdDashboard, MdOutlineSettings } from "react-icons/md";
+import { MdDashboard, MdLogout, MdOutlineSettings } from "react-icons/md";
 
 import craveCrusherlogo from "../../../../public/crave-crusher-logo.svg";
 import { useState } from "react";
@@ -23,7 +23,7 @@ const Sidebar = () => {
     },
 
     { name: "Profile Settings", link: "/profile" },
-    { name: "Log out", link: "/login" },
+    // { name: "Log out", link: "/login" },
   ];
 
   const dashBoard = {
@@ -122,6 +122,22 @@ const Sidebar = () => {
               ))}
             </div>
           )}
+
+          <div className="mt-10">
+            <NavLink
+              to={"/login"}
+              className={({ isActive }) =>
+                `flex items-center py-2 px-6 my-1 rounded-xl hover:bg-[#6C63FF] hover:text-white 
+                      ${isActive ? "bg-[#6C63FF] text-white" : ""}`
+              }
+              onClick={() => localStorage.clear()}
+            >
+              <span className="mr-4 text-xl">
+                <MdLogout />
+              </span>
+              <span>Logout</span>
+            </NavLink>
+          </div>
         </li>
       </ul>
     </div>
