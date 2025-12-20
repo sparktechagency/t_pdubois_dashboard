@@ -66,7 +66,7 @@ const Navbar = () => {
       <div></div>
       {/* <p className="text-2xl font-bold text-blue-600 ">Dashboard</p> */}
       <div className="flex items-center gap-4">
-        <Popover
+        {/* <Popover
           content={NotificationContent}
           trigger="click"
           placement="bottomRight"
@@ -81,7 +81,7 @@ const Navbar = () => {
               </span>
             )}
           </button>
-        </Popover>
+        </Popover> */}
         <Link
           to="/profile"
           className="flex items-center gap-2  border-[#6C63FF] border-2 p-2 rounded-md"

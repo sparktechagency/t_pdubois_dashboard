@@ -5,7 +5,10 @@ import { FaUserCircle } from "react-icons/fa";
 import { MdBlock } from "react-icons/md";
 import { IoIosWarning } from "react-icons/io";
 import Back from "../../components/back/Back";
-import { useGetAllUsersQuery } from "../../Redux/usersApis";
+import {
+  useGetAllUsersQuery,
+  useUserBlockUnblockMutation,
+} from "../../Redux/usersApis";
 import { image_url } from "../../Redux/main/server";
 
 const Users = () => {
@@ -16,12 +19,19 @@ const Users = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isBlocked, setIsBlocked] = useState(false);
 
-  const { data: usersData, isLoading } = useGetAllUsersQuery({
+  const queryParams = {
     page: currentPage,
     limit: 10,
     searchTerm,
-    isBlocked,
-  });
+  };
+
+  if (isBlocked !== null) {
+    queryParams.isBlocked = isBlocked ? "true" : "false";
+  }
+
+  const { data: usersData, isLoading } = useGetAllUsersQuery(queryParams);
+
+  const [userBlockUnblock] = useUserBlockUnblockMutation();
 
   const users =
     usersData?.data?.result.map((item) => ({
@@ -35,12 +45,6 @@ const Users = () => {
       status: item.user.isBlocked ? "Blocked" : "Active",
       userData: item.user,
     })) || [];
-
-  const filteredUsers = users.filter(
-    (user) =>
-      user.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const columns = [
     {
@@ -128,18 +132,31 @@ const Users = () => {
     setIsDeleteModalVisible(true);
   };
 
-  const handleStatusToggle = () => {
-    const updatedStatus =
-      selectedUser.status === "Active" ? "Blocked" : "Active";
-    setSelectedUser({ ...selectedUser, status: updatedStatus });
-    setIsDeleteModalVisible(false);
-  };
+  const handleStatusToggle = async () => {
+    if (!selectedUser) return;
 
+    try {
+      await userBlockUnblock(selectedUser.key).unwrap();
+
+      const updatedStatus =
+        selectedUser.status === "Active" ? "Blocked" : "Active";
+      setSelectedUser({ ...selectedUser, status: updatedStatus });
+
+      setIsDeleteModalVisible(false);
+    } catch (error) {
+      console.error("Failed to block/unblock user:", error);
+    }
+  };
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
   const dropdownItems = [
+    {
+      label: <div className="font-poppins">Active</div>,
+      key: "active",
+      value: false,
+    },
     {
       label: <div className="font-poppins">All Users</div>,
       key: "all",
@@ -150,11 +167,6 @@ const Users = () => {
       key: "blocked",
       value: true,
     },
-    {
-      label: <div className="font-poppins">Active</div>,
-      key: "active",
-      value: false,
-    },
   ];
   const handleDropdownSelect = (value) => {
     setIsBlocked(value);
@@ -162,7 +174,7 @@ const Users = () => {
   };
 
   return (
-    <div className="bg-[#F9FAFB] h-screen p-10 mb-10">
+    <div className="bg-[#F9FAFB] h-screen p-10 !mb-48">
       <div className="flex items-center justify-between">
         <Back name="User Management " />
         <div className="flex gap-4 bg-white ">
@@ -203,13 +215,13 @@ const Users = () => {
       <div className="mb-20 bg-white p-5 mt-4">
         <Table
           columns={columns}
-          dataSource={filteredUsers}
+          dataSource={users}
           loading={isLoading}
           pagination={{
             position: ["bottomCenter"],
             current: currentPage,
             pageSize: 10,
-            total: filteredUsers.length,
+            total: usersData?.data?.meta?.total,
             onChange: handlePageChange,
             showSizeChanger: false,
           }}

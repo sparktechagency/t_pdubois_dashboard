@@ -10,10 +10,17 @@ const usersApis = baseApis.injectEndpoints({
       }),
       providesTags: ["users"],
     }),
+    userBlockUnblock: builder.mutation({
+      query: (id) => ({
+        url: `/user/block-user/${id}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["users"],
+    }),
   }),
   overrideExisting: false,
 });
 
-export const { useGetAllUsersQuery } = usersApis;
+export const { useGetAllUsersQuery, useUserBlockUnblockMutation } = usersApis;
 
 export default usersApis;
