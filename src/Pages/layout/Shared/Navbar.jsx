@@ -3,6 +3,7 @@ import { MdNotificationsNone } from "react-icons/md";
 import { FaUserCircle } from "react-icons/fa";
 import { Popover } from "antd";
 import { Link } from "react-router-dom";
+import { useGetProfileQuery } from "../../../Redux/profileApis";
 
 const Navbar = () => {
   const [visible, setVisible] = useState(false);
@@ -15,6 +16,8 @@ const Navbar = () => {
       createdAt: "5h ago",
     },
   ]);
+
+  const { data: profileData, isLoading } = useGetProfileQuery();
 
   const handleVisibleChange = (visible) => {
     setVisible(visible);
@@ -85,8 +88,11 @@ const Navbar = () => {
         >
           <FaUserCircle className="text-3xl text-gray-600 font-poppins" />
           <div className="text-left">
-            <p className="text-sm font-semibold">John Doe</p>
-            <p className="text-xs text-gray-500">john.doe@example.com</p>
+            <p className="text-sm font-semibold">
+              {" "}
+              {profileData?.data?.fullName}
+            </p>
+            <p className="text-xs text-gray-500">{profileData?.data?.email}</p>
           </div>
         </Link>
       </div>

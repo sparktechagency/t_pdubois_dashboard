@@ -4,18 +4,18 @@ const privacyPolicyApis = baseApis.injectEndpoints({
   endpoints: (builder) => ({
     getPrivacyPolicy: builder.query({
       query: () => ({
-        url: '/privacy-policy/retrive',
+        url: '/manage-web/get-privacy-policy',
         method: 'GET',
       }),
       providesTags: ['privacyPolicy'],
     }),
     createPrivacyPolicy: builder.mutation({
       query: (data) => ({
-        url: '/privacy-policy/create-or-update',
+        url: '/manage-web/add-privacy-policy',
         method: 'POST',
         body: data,
       }),
-      providesTags: ['privacyPolicy'],
+      invalidatesTags: ['privacyPolicy'],
     }),
   }),
   overrideExisting: false,

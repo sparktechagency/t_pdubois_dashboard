@@ -5,6 +5,8 @@ import { FaUserCircle } from "react-icons/fa";
 import { MdBlock } from "react-icons/md";
 import { IoIosWarning } from "react-icons/io";
 import Back from "../../components/back/Back";
+import { useGetAllUsersQuery } from "../../Redux/usersApis";
+import { image_url } from "../../Redux/main/server";
 
 const Users = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -12,55 +14,33 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isBlocked, setIsBlocked] = useState(false);
 
-  const items = [
-    {
-      label: <div className="font-poppins">Blocked</div>,
-      key: "1",
-    },
-    {
-      label: <div className="font-poppins">Active</div>,
-      key: "2",
-    },
-  ];
+  const { data: usersData, isLoading } = useGetAllUsersQuery({
+    page: currentPage,
+    limit: 10,
+    searchTerm,
+    isBlocked,
+  });
 
-  // -------------------------
-  // Users State - Now with state management
-  // -------------------------
-  const [users, setUsers] = useState([
-    {
-      _id: "1",
-      name: "John Doe",
-      img: "https://i.pravatar.cc/150?img=1",
-      activeBattles: 10,
-      earnedBadge: 5,
-      email: "john@example.com",
-      createdAt: "2024-04-10",
-      block: false,
-    },
-    {
-      _id: "2",
-      name: "Sarah Khan",
-      img: "https://i.pravatar.cc/150?img=2",
-      activeBattles: 8,
-      earnedBadge: 15,
-      email: "sarah@example.com",
-      createdAt: "2024-04-14",
-      block: true,
-    },
-  ]);
+  const users =
+    usersData?.data?.result.map((item) => ({
+      key: item.user._id,
+      image: item.user.profileImage,
+      userName: item.user.fullName,
+      email: item.user.email,
+      joined: new Date(item.user.createdAt).toLocaleDateString(),
+      activeBattles: item.other.activeBattle,
+      earnedBadge: item.other.earnBadge,
+      status: item.user.isBlocked ? "Blocked" : "Active",
+      userData: item.user,
+    })) || [];
 
-  const transformedData = users.map((user) => ({
-    key: user._id,
-    image: user.img,
-    userName: user.name,
-    earnedBadge: user.earnedBadge,
-    activeBattles: user.activeBattles,
-    email: user.email,
-    joined: user.createdAt,
-    status: user.block ? "Blocked" : "Active",
-    userData: user,
-  }));
+  const filteredUsers = users.filter(
+    (user) =>
+      user.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const columns = [
     {
@@ -70,7 +50,7 @@ const Users = () => {
       render: (text, record) => (
         <div className="flex items-center space-x-3 font-poppins">
           <img
-            src={record.image}
+            src={`${image_url}/${record.image}`}
             alt=""
             className="w-12 h-12 rounded-full object-cover"
           />
@@ -82,41 +62,25 @@ const Users = () => {
       title: <div className="font-poppins">Email</div>,
       dataIndex: "email",
       key: "email",
-      render: (text) => (
-        <div className="font-poppins">
-          <span>{text}</span>
-        </div>
-      ),
+      render: (text) => <div className="font-poppins">{text}</div>,
     },
     {
       title: <div className="font-poppins">Joined</div>,
       dataIndex: "joined",
       key: "joined",
-      render: (text) => (
-        <div className="font-poppins">
-          <span>{text}</span>
-        </div>
-      ),
+      render: (text) => <div className="font-poppins">{text}</div>,
     },
     {
       title: <div className="font-poppins">Active Battles</div>,
       dataIndex: "activeBattles",
       key: "activeBattles",
-      render: (text) => (
-        <div className="font-poppins">
-          <span>{text}</span>
-        </div>
-      ),
+      render: (text) => <div className="font-poppins">{text}</div>,
     },
     {
       title: <div className="font-poppins">Earned Badge</div>,
       dataIndex: "earnedBadge",
       key: "earnedBadge",
-      render: (text) => (
-        <div className="font-poppins">
-          <span>{text}</span>
-        </div>
-      ),
+      render: (text) => <div className="font-poppins">{text}</div>,
     },
     {
       title: <div className="font-poppins">Status</div>,
@@ -146,7 +110,7 @@ const Users = () => {
           <Button
             type="primary"
             icon={<MdBlock />}
-            className={"bg-red-500 hover:!bg-red-600 text-white"}
+            className="bg-red-500 hover:!bg-red-600 text-white"
             onClick={() => openStatusModal(record)}
           />
         </div>
@@ -165,13 +129,9 @@ const Users = () => {
   };
 
   const handleStatusToggle = () => {
-    setUsers((prevUsers) =>
-      prevUsers.map((user) =>
-        user._id === selectedUser.userData._id
-          ? { ...user, block: !user.block }
-          : user
-      )
-    );
+    const updatedStatus =
+      selectedUser.status === "Active" ? "Blocked" : "Active";
+    setSelectedUser({ ...selectedUser, status: updatedStatus });
     setIsDeleteModalVisible(false);
   };
 
@@ -179,17 +139,52 @@ const Users = () => {
     setCurrentPage(page);
   };
 
-  return (
-    <div className="bg-[#F9FAFB] h-screen p-10">
-      <div className="flex items-center justify-between ">
-        <Back name="User Management " />
+  const dropdownItems = [
+    {
+      label: <div className="font-poppins">All Users</div>,
+      key: "all",
+      value: null,
+    },
+    {
+      label: <div className="font-poppins">Blocked</div>,
+      key: "blocked",
+      value: true,
+    },
+    {
+      label: <div className="font-poppins">Active</div>,
+      key: "active",
+      value: false,
+    },
+  ];
+  const handleDropdownSelect = (value) => {
+    setIsBlocked(value);
+    setCurrentPage(1);
+  };
 
+  return (
+    <div className="bg-[#F9FAFB] h-screen p-10 mb-10">
+      <div className="flex items-center justify-between">
+        <Back name="User Management " />
         <div className="flex gap-4 bg-white ">
           <div className="border p-1 pt-2 rounded-md">
-            <Dropdown menu={{ items }} trigger={["click"]} className="p-2 cursor-pointer">
+            <Dropdown
+              menu={{
+                items: dropdownItems.map((item) => ({
+                  key: item.key,
+                  label: item.label,
+                  onClick: () => handleDropdownSelect(item.value),
+                })),
+              }}
+              trigger={["click"]}
+              className="cursor-pointer"
+            >
               <a onClick={(e) => e.preventDefault()}>
                 <Space>
-                  All Users
+                  {isBlocked === true
+                    ? "Blocked"
+                    : isBlocked === false
+                    ? "Active"
+                    : "All Users"}
                   <DownOutlined />
                 </Space>
               </a>
@@ -208,12 +203,13 @@ const Users = () => {
       <div className="mb-20 bg-white p-5 mt-4">
         <Table
           columns={columns}
-          dataSource={transformedData}
+          dataSource={filteredUsers}
+          loading={isLoading}
           pagination={{
             position: ["bottomCenter"],
             current: currentPage,
             pageSize: 10,
-            total: users.length,
+            total: filteredUsers.length,
             onChange: handlePageChange,
             showSizeChanger: false,
           }}
@@ -228,9 +224,8 @@ const Users = () => {
             footer={null}
             centered
             width={480}
-            className="custom-profile-modal"
           >
-            <div className="flex flex-col items-center text-center py-6 px-4  font-poppins">
+            <div className="flex flex-col items-center text-center py-6 px-4 font-poppins">
               <div className="relative">
                 <Image
                   src={selectedUser.image}
@@ -241,13 +236,10 @@ const Users = () => {
                 />
                 <span className="absolute bottom-2 right-2 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></span>
               </div>
-
               <h2 className="mt-4 text-2xl font-bold tracking-wide text-gray-800 font-poppins">
                 {selectedUser.userName}
               </h2>
-
               <p className="text-gray-600 text-sm">{selectedUser.email}</p>
-
               <p
                 className={`mt-2 px-3 py-1 text-xs rounded-full font-medium ${
                   selectedUser.status === "Active"
@@ -257,16 +249,15 @@ const Users = () => {
               >
                 {selectedUser.status}
               </p>
-
               <div className="mt-6 grid grid-cols-2 gap-4 w-full">
                 <div className="p-4 rounded-xl bg-white/60 backdrop-blur shadow">
-                  <p className=" text-sm">Active Battles</p>
+                  <p className="text-sm">Active Battles</p>
                   <p className="text-xl font-semibold text-gray-800">
                     {selectedUser.activeBattles}
                   </p>
                 </div>
                 <div className="p-4 rounded-xl bg-white/60 backdrop-blur shadow">
-                  <p className=" text-sm">Earned Badges</p>
+                  <p className="text-sm">Earned Badges</p>
                   <p className="text-xl font-semibold text-gray-800">
                     {selectedUser.earnedBadge}
                   </p>
@@ -297,7 +288,7 @@ const Users = () => {
             },
           }}
         >
-          <div className="text-lg bg-no-repeat bg-left-top bg-contain h-[150px] font-poppins">
+          <div className="text-lg h-[150px] font-poppins">
             <div className="flex justify-center items-end">
               <IoIosWarning className="text-7xl text-yellow-400" />
             </div>

@@ -15,7 +15,7 @@ const profileApis = baseApis.injectEndpoints({
         method: "PATCH",
         body: data,
       }),
-      providesTags: ["Profile"],
+      invalidatesTags: ["Profile"],
     }),
   }),
   overrideExisting: false,

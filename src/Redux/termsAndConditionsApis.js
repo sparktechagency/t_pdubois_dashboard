@@ -4,18 +4,18 @@ const termsAndConditionsApis = baseApis.injectEndpoints({
   endpoints: (builder) => ({
     getTermsAndCondition: builder.query({
       query: () => ({
-        url: '/terms-condition/retrive',
+        url: '/manage-web/get-terms-conditions',
         method: 'GET',
       }),
       providesTags: ['termsAndCondition'],
     }),
     createTermsAndCondition: builder.mutation({
       query: (data) => ({
-        url: '/terms-condition/create-or-update',
+        url: '/manage-web/add-terms-conditions',
         method: 'POST',
         body: data,
       }),
-      providesTags: ['termsAndCondition'],
+      invalidatesTags: ['termsAndCondition'],
     }),
   }),
   overrideExisting: false,

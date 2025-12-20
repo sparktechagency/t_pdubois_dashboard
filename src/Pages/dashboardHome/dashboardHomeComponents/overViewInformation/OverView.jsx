@@ -1,33 +1,36 @@
 import activeUser from "../../../../assets/active-user.svg";
 import active from "../../../../assets/active.svg";
 import blocked from "../../../../assets/blocked.svg";
+import { useGetDashboardStatsQuery } from "../../../../Redux/dashboardApis";
 
 const StatCard = ({ icon, title, value }) => (
-  <div className="bg-white rounded-md border h-[180px]  p-4 flex  gap-3 items-center justify-center font-poppins">
+  <div className="bg-white rounded-md border h-[180px] p-4 flex gap-3 items-center justify-center font-poppins">
     <img src={icon} alt={title} className="w-28 h-28" />
     <div className="flex items-center flex-col mt-3">
-      <span className="  text-[22px]">{title}</span>
+      <span className="text-[22px]">{title}</span>
       <div className={`text-2xl font-bold text-[#6C63FF]`}>{value}</div>
     </div>
   </div>
 );
 
 const OverView = () => {
+  const { data: dashboardStats, isLoading } = useGetDashboardStatsQuery();
+
   const stats = [
     {
       icon: activeUser,
       title: "Active User",
-      value: "1576",
+      value: isLoading ? "..." : dashboardStats?.data?.activeUser || 0,
     },
     {
       icon: blocked,
       title: "Blocked User",
-      value: "70",
+      value: isLoading ? "..." : dashboardStats?.data?.blockedUser || 0,
     },
     {
       icon: active,
       title: "Active Post",
-      value: "725",
+      value: isLoading ? "..." : dashboardStats?.data?.activePost || 0,
     },
   ];
 
@@ -40,7 +43,6 @@ const OverView = () => {
             icon={stat.icon}
             title={stat.title}
             value={stat.value}
-            valueColor={stat.valueColor}
           />
         ))}
       </div>

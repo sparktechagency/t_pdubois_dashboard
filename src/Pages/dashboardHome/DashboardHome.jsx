@@ -13,7 +13,7 @@ const DashboardHome = () => {
         <div className="mt-5   rounded-lg ">
           <UserGrowthData />
         </div>
-        <div className="mt-10 p-3 rounded-md flex justify-between bg-white font-poppins">
+        {/* <div className="mt-10 p-3 rounded-md flex justify-between bg-white font-poppins">
           <div className="font-semibold">Recently Joined Users</div>
           <Link to="/users" className="text-sm text-[#6C63FF]">
             View All
@@ -21,7 +21,7 @@ const DashboardHome = () => {
         </div>
         <div>
           <RecentlyJoinedUsers />
-        </div>
+        </div> */}
       </div>
     </div>
   );
