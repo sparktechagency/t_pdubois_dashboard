@@ -1,2 +1,2 @@
-export const url = `http://10.10.20.45:5555/api/v1`;
-export const image_url = `http://10.10.20.45:5555`;
+export const url = `http://56.228.56.225:5000/api/v1`;
+export const image_url = `http://56.228.56.225:5000`;

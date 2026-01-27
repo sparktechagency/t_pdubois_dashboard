@@ -24,12 +24,12 @@ const Profile = () => {
   useEffect(() => {
     if (profileData?.data) {
       form.setFieldsValue({
-        fullName: profileData.data?.fullName,
-        email: profileData.data?.email,
+        fullName: profileData?.data?.fullName,
+        email: profileData?.data?.email,
       });
 
       setFormData({
-        image: `${image_url}/${profileData.data?.profileImage}`,
+        image: `${image_url}/${profileData?.data?.profileImage}`,
       });
     }
   }, [profileData, form]);
@@ -89,7 +89,7 @@ const Profile = () => {
             <Image
               src={
                 formData.imagePreview ||
-                `${image_url}/${profileData.data?.profileImage}` ||
+                `${image_url}/${profileData?.data?.profileImage}` ||
                 profileImage
               }
               alt="Profile"

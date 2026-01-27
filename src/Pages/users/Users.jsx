@@ -174,7 +174,7 @@ const Users = () => {
   };
 
   return (
-    <div className="bg-[#F9FAFB] h-screen p-10 !mb-48">
+    <div className="bg-[#F9FAFB] h-screen p-10 !mb-64 !pb-20">
       <div className="flex items-center justify-between">
         <Back name="User Management " />
         <div className="flex gap-4 bg-white ">
@@ -212,7 +212,7 @@ const Users = () => {
         </div>
       </div>
 
-      <div className="mb-20 bg-white p-5 mt-4">
+      <div className="mb-20 bg-white p-5 mt-4 !pb-20">
         <Table
           columns={columns}
           dataSource={users}
