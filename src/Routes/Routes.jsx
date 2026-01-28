@@ -29,27 +29,29 @@ const router = createBrowserRouter([
         index: true,
         element: <DashboardHome />,
       },
-      {
-        path: "/privacy-policy",
-        element: <PrivacyPolicy />,
-      },
-      {
-        path: "/terms-and-condition",
-        element: <TermsAndConditions />,
-      },
+
       {
         path: "/profile",
         element: <Profile />,
       },
-      {
-        path: "/faq",
-        element: <FAQ />,
-      },
+
       {
         path: "/users",
         element: <Users />,
       },
     ],
+  },
+  {
+    path: "/faq",
+    element: <FAQ />,
+  },
+  {
+    path: "/privacy-policy",
+    element: <PrivacyPolicy />,
+  },
+  {
+    path: "/terms-and-condition",
+    element: <TermsAndConditions />,
   },
   {
     path: "/login",
