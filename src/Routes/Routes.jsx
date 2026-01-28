@@ -12,6 +12,8 @@ import ErrorBoundary from "../ErrorBoundary";
 import FAQ from "../Pages/faq/FAQ";
 import Users from "../Pages/users/Users";
 import DashboardHome from "../Pages/dashboardHome/DashboardHome";
+import GetPrivacyPolicy from "../Pages/privacyPolicy/GetPrivacyPolicy";
+import GetTermsAndConditions from "../Pages/termsAndConditions/GetTermsAndConditions";
 
 const router = createBrowserRouter([
   {
@@ -32,24 +34,31 @@ const router = createBrowserRouter([
         path: "/profile",
         element: <Profile />,
       },
-
+      {
+        path: "/faq",
+        element: <FAQ />,
+      },
       {
         path: "/users",
         element: <Users />,
       },
+      {
+        path: "/privacy-policy",
+        element: <PrivacyPolicy />,
+      },
+      {
+        path: "/terms-and-condition",
+        element: <TermsAndConditions />,
+      },
     ],
   },
   {
-    path: "/faq",
-    element: <FAQ />,
+    path: "/get-privacy-policy",
+    element: <GetPrivacyPolicy />,
   },
   {
-    path: "/privacy-policy",
-    element: <PrivacyPolicy />,
-  },
-  {
-    path: "/terms-and-condition",
-    element: <TermsAndConditions />,
+    path: "/get-terms-and-condition",
+    element: <GetTermsAndConditions />,
   },
   {
     path: "/login",
