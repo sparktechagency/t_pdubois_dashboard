@@ -31,14 +31,7 @@ const router = createBrowserRouter([
         index: true,
         element: <DashboardHome />,
       },
-      {
-        path: "/privacy-policy",
-        element: <PrivacyPolicy />,
-      },
-      {
-        path: "/terms-and-condition",
-        element: <TermsAndConditions />,
-      },
+
       {
         path: "/profile",
         element: <Profile />,
@@ -50,6 +43,14 @@ const router = createBrowserRouter([
       {
         path: "/users",
         element: <Users />,
+      },
+      {
+        path: "/privacy-policy",
+        element: <PrivacyPolicy />,
+      },
+      {
+        path: "/terms-and-condition",
+        element: <TermsAndConditions />,
       },
     ],
   },
